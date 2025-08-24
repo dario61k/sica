@@ -2,18 +2,6 @@
 
 SICA es un backend para la gestión de productos y categorías. Pensado para servir como base en proyectos que requieran un backend sencillo para catálogo de productos. Simple y facil de extender.
 
-**Indíce**
-
-- [[#Características|Características]]
-- [[#Requisitos|Requisitos]]
-- [[#Instalación|Instalación]]
-- [[#Variables de entorno|Variables de entorno]]
-- [[#API Endpoints|API Endpoints]]
-	- [[#API Endpoints#Públicos|Públicos]]
-	- [[#API Endpoints#Autenticación|Autenticación]]
-	- [[#API Endpoints#Gestión (requiere autenticación)|Gestión (requiere autenticación)]]
-- [[#Base de datos (IMPORTANTE)|Base de datos (IMPORTANTE)]]
-
 ---
 ## Características
 
