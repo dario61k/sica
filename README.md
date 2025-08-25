@@ -1,25 +1,40 @@
 # SICA
 
-SICA es un backend para la gestión de productos y categorías. Pensado para servir como base en proyectos que requieran un backend sencillo para catálogo de productos. Simple y facil de extender.
+[![Go Version](https://img.shields.io/badge/Go-1.23+-blue)](https://golang.org/)  
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supported-green)](https://www.postgresql.org/)  
+![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
+
+**SICA** is a lightweight backend for managing products and categories. It is designed to be a simple, extensible foundation for projects that require a product catalog backend.
 
 ---
-## Características
 
-- Autenticación basada en JWT (un solo usuario administrador)
-- Gestión de productos y categorías
-- Almacenamiento de imágenes en Cloudinary
-- Contraseñas protegidas con bcrypt
-- Estructura modular en Go
+## ✨ Features
+
+- JWT-based authentication (single admin user)
+    
+- Product and category management
+    
+- Cloudinary image storage
+    
+- Passwords secured with bcrypt
+    
+- Modular structure in Go
+    
 
 ---
-## Requisitos
 
-- Go 1.23+ (versión probada)
-- PostgreSQL
-- Cuenta de Cloudinary
+## 📦 Requirements
+
+- **Go** 1.23+ (tested version)
+    
+- **PostgreSQL**
+    
+- **Cloudinary account**
+    
 
 ---
-## Instalación
+
+## 🚀 Installation
 
 ```bash
 git clone https://github.com/dario61k/sica.git
@@ -29,7 +44,8 @@ go run ./cmd/api/main.go
 ```
 
 ---
-## Variables de entorno
+
+## ⚙️ Environment Variables
 
 ```env
 PORT=3000
@@ -43,42 +59,63 @@ C_API_SECRET=your-cloudinary-secret
 ```
 
 ---
-## API Endpoints
 
-### Públicos
-- `GET /api/get-all` - Obtiene todas las categorías y productos visibles
+## 🔌 API Endpoints
 
-### Autenticación
-- `POST /api/login` - Login del administrador (solo password)
-- `POST /api/refresh-token` - Refresca el access token
-- `GET /api/auth` - Verifica si el token es válido
+### Public
 
-### Gestión (requiere autenticación)
-- `GET /api/category` - Lista todas las categorías
-- `POST /api/category` - Crea una nueva categoría
-- `PUT /api/category/:id` - Actualiza una categoría
-- `DELETE /api/category/:id` - Elimina una categoría
+- `GET /api/get-all` → Fetch all visible categories and products
+    
 
-- `GET /api/product` - Lista todos los productos
-- `POST /api/product` - Crea un nuevo producto (con imagen)
-- `PUT /api/product/:id` - Actualiza un producto
-- `DELETE /api/product/:id` - Elimina un producto
+### Authentication
+
+- `POST /api/login` → Admin login (password only)
+    
+- `POST /api/refresh-token` → Refresh access token
+    
+- `GET /api/auth` → Validate token
+    
+
+### Management (requires authentication)
+
+- **Categories**
+    
+    - `GET /api/category` → List all categories
+        
+    - `POST /api/category` → Create a new category
+        
+    - `PUT /api/category/:id` → Update a category
+        
+    - `DELETE /api/category/:id` → Delete a category
+        
+- **Products**
+    
+    - `GET /api/product` → List all products
+        
+    - `POST /api/product` → Create a new product (with image)
+        
+    - `PUT /api/product/:id` → Update a product
+        
+    - `DELETE /api/product/:id` → Delete a product
+        
 
 ---
-## Base de datos (IMPORTANTE)
 
-La aplicación creará automáticamente las tablas necesarias. **Después de la primera ejecución, ejecuta este SQL en tu base de datos** para habilitar configuraciones necesarias en la tabla  `categories` :
+## 🗄️ Database Setup (IMPORTANT)
+
+The application will create the required tables automatically.  
+**After the first run, execute the following SQL in your database** to enable necessary constraints and triggers for the `categories` table:
 
 ```sql
--- 1. Agregar columna auxiliar
+-- Add auxiliary column
 ALTER TABLE categories 
 ADD COLUMN IF NOT EXISTS internal_update BOOLEAN DEFAULT FALSE;
 
--- 2. Constraint para unicidad del orden
+-- Unique constraint for order
 ALTER TABLE categories 
 ADD CONSTRAINT unique_order UNIQUE ("order") DEFERRABLE INITIALLY DEFERRED;
 
--- 3. Función principal de actualización (evita recursión)
+-- Update function (avoids recursion)
 CREATE OR REPLACE FUNCTION categories_update() 
 RETURNS TRIGGER AS $$
 DECLARE
@@ -102,7 +139,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4. Función para limpiar el flag
+-- Clear flag function
 CREATE OR REPLACE FUNCTION categories_clear_flag() 
 RETURNS TRIGGER AS $$
 BEGIN
@@ -111,12 +148,11 @@ BEGIN
         SET internal_update = FALSE 
         WHERE id = NEW.id;
     END IF;
-
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
--- 5. Crear triggers de actualización con protección
+-- Create triggers
 DROP TRIGGER IF EXISTS categories_update_trigger ON categories;
 DROP TRIGGER IF EXISTS categories_clear_flag_trigger ON categories;
 
@@ -132,7 +168,7 @@ FOR EACH ROW
 WHEN (NEW.internal_update IS TRUE)
 EXECUTE FUNCTION categories_clear_flag();
 
--- 6. Trigger para inserción automática de orden
+-- Auto-order on insert
 CREATE OR REPLACE FUNCTION categories_create() 
 RETURNS TRIGGER AS $$
 DECLARE
@@ -149,14 +185,13 @@ BEFORE INSERT ON categories
 FOR EACH ROW
 EXECUTE FUNCTION categories_create();
 
--- 7. Trigger para actualización del orden al eliminar
+-- Update order on delete
 CREATE OR REPLACE FUNCTION categories_delete() 
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE categories 
     SET "order" = "order" - 1, internal_update = TRUE 
     WHERE "order" > OLD."order";
-
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -165,5 +200,17 @@ CREATE TRIGGER categories_delete
 AFTER DELETE ON categories
 FOR EACH ROW
 EXECUTE FUNCTION categories_delete();
-
 ```
+
+---
+
+## 🛠️ Contributing
+
+Contributions, issues, and feature requests are welcome!  
+Feel free to fork the repository and submit a PR.
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.
